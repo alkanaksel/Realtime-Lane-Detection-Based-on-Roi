@@ -8,10 +8,10 @@ def multi_angle_edge_detection(image):
     g_90 = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
     g_135 = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
 
-    edge_0 = cv2.filter2D(image, -1, g_0) # Yatay kenarları tespit eder
-    edge_45 = cv2.filter2D(image, -1, g_45) # 45 derece eğimli kenarları tespit eder
-    edge_90 = cv2.filter2D(image, -1, g_90) # Dik kenarları tespit eder
-    edge_135 = cv2.filter2D(image, -1, g_135) # 135 derece eğimli kenarları tespit eder
+    edge_0 = cv2.filter2D(image, -1, g_0)  # Detects horizontal edges
+    edge_45 = cv2.filter2D(image, -1, g_45)  # Detects edges with a 45-degree slope
+    edge_90 = cv2.filter2D(image, -1, g_90)  # Detects vertical edges
+    edge_135 = cv2.filter2D(image, -1, g_135)  # Detects edges with a 135-degree slope
     edges = np.sqrt(edge_0**2 + edge_45**2 + edge_90**2 + edge_135**2)
 
     return edges
@@ -73,13 +73,13 @@ def draw_lines(img, lines, color=(0, 0, 255), thickness=40):
   
 
 def detect_direction(frame, edges):
-    filtered_edges = cv2.filter2D(edges, -1, np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], np.float32)) # Kenarları vurgulayan kernel ile çarpılır
+    filtered_edges = cv2.filter2D(edges, -1, np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], np.float32)) # Convolution with edge detection kernel
     y_min = 0
 
     A = np.column_stack((filtered_edges.flatten(), np.ones_like(filtered_edges.flatten())))
     coefficients, _, _, _ = np.linalg.lstsq(A, edges.flatten(), rcond=None)
 
-    # Her sütun için ortalama y değeri hesaplanır
+    # Calculating the average y value for each column
     y_means = []
     x_values = []
     for x in range(edges.shape[1]):
@@ -129,11 +129,11 @@ while cap.isOpened():
     cv2.line(frame2, br, bl, (0, 0, 255), 1)
     cv2.line(frame2, bl, tl, (0, 0, 255), 1)
 
-    #Perspektif Dönüşüm parametreleri
+    # Parameters for Perspective Transform
     pts1 = np.float32([tl, bl, tr, br])
     pts2 = np.float32([[0, 0], [0, 480], [640, 0], [640, 480]])
 
-    #Gerçek görüntüden roi bölgesinin perspektifi alınıp işlemler yapılıyor. 
+    # Applying Perspective Transform on roi. 
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     transformed_frame = cv2.warpPerspective(frame, matrix, (640, 480))
     edges = cv2.warpPerspective(img_edges, matrix, (640, 480))
@@ -144,18 +144,18 @@ while cap.isOpened():
     
     transformed_frame = cv2.pow(transformed_frame, -1)
 
-    #Roi bölgesinin Ters perspektifi alınıp gerçek görüntüye aktarılıyor 
+    # Applying Inverse Perspective Transform 
     matrix2 = cv2.getPerspectiveTransform(pts2, pts1)
     reverse_transformed_frame = cv2.warpPerspective(transformed_frame, matrix2, (640, 480))
     result = cv2.addWeighted(frame2, 1, reverse_transformed_frame, 1, 0)
 
-    cv2.imshow("multi angle edge detection", img_edges)
-    cv2.imshow("nonlinear",nonlinear_transform_img)
-    cv2.imshow("transformed frame", transformed_frame)
-        
-    cv2.imshow("result",result)
-    cv2.imshow("edges",edges)
+    # Results
     cv2.imshow("frame",frame)
+    cv2.imshow("result",result)
+    #cv2.imshow("nonlinear",nonlinear_transform_img)
+    #cv2.imshow("multi angle edge detection", img_edges)
+    #cv2.imshow("transformed frame", transformed_frame)
+    #cv2.imshow("edges",edges)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
