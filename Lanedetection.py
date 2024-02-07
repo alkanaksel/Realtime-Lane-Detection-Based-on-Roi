@@ -39,9 +39,9 @@ def draw_lines(img, lines, color=(0, 0, 255), thickness=40):
                         left_x.extend([x1, x2])
                         left_y.extend([y1, y2])
     
-    # Sol çizgiyi oluşturmak için uygun koordinatlar varsa
+    # If there are suitable coordinates to create the left line
     if left_x and left_y and len(left_x) > 1 and len(left_y) > 1:
-        # Sol çizginin katsayıları hesaplanır
+        # Calculating the coefficents of left line
         left_line_coef = np.polyfit(left_y, left_x, 1)
         l = np.poly1d(left_line_coef)
 
@@ -50,9 +50,9 @@ def draw_lines(img, lines, color=(0, 0, 255), thickness=40):
         upper_left_x = int(l(min_height))
         cv2.line(img, (bottom_left_x, height), (upper_left_x, min_height), color, thickness)
 
-    # Sağ çizgiyi oluşturmak için uygun koordinatlar varsa
+    # If there are suitable coordinates to create the right line
     if right_x and right_y and len(right_x) > 1 and len(right_y) > 1:
-        # Sağ çizginin katsayıları hesaplanır
+        # Calculating the coefficents of right line
         right_line_coef = np.polyfit(right_y, right_x, 1)
         r = np.poly1d(right_line_coef)
 
